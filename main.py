@@ -249,9 +249,12 @@ async def set_timer(session_id: str, data: dict):
     if action == "set":
         conn.execute("UPDATE sessions SET timer_seconds=?, timer_running=0, timer_started_at=NULL WHERE id=?",
                      (int(data.get("seconds", 300)), session_id))
+  
     elif action == "start":
+        # Aktuellen remaining-Wert aus pause berechnen falls nötig
+        row = conn.execute("SELECT timer_seconds, timer_started_at, timer_running FROM sessions WHERE id=?", (session_id,)).fetchone()
         conn.execute("UPDATE sessions SET timer_running=1, timer_started_at=? WHERE id=?",
-                     (datetime.now().isoformat(), session_id))
+                 (datetime.now().isoformat(), session_id))
     elif action == "pause":
         # Subtract elapsed from timer_seconds
         row = conn.execute("SELECT timer_seconds, timer_started_at FROM sessions WHERE id=?", (session_id,)).fetchone()

@@ -262,19 +262,37 @@ function syncTimer(session) {
   const running = session.timer_running;
   const startedAt = session.timer_started_at;
 
-  if (secs === 0) return;
+  if (secs === 0 && !running) {
+    // Timer wurde resettet
+    document.getElementById('timer-display')?.style && (document.getElementById('timer-display').style.display = 'none');
+    document.getElementById('timer-controls')?.style && (document.getElementById('timer-controls').style.display = 'none');
+    document.getElementById('timer-set-ui')?.style && (document.getElementById('timer-set-ui').style.display = 'flex');
+    return;
+  }
+
   let remaining = secs;
   if (running && startedAt) {
     const elapsed = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
     remaining = Math.max(0, secs - elapsed);
   }
-  timerSecondsLeft = remaining;
-  document.getElementById('timer-set-ui').style.display = 'none';
-  document.getElementById('timer-display').style.display = 'block';
-  document.getElementById('timer-controls').style.display = 'flex';
+
+  // Nur überschreiben wenn Differenz gross (verhindert Sprünge durch State-Updates)
+  if (Math.abs(remaining - timerSecondsLeft) > 3 || !timerRunning) {
+    timerSecondsLeft = remaining;
+  }
+
+  // UI einblenden
+  const dispEl = document.getElementById('timer-display');
+  const ctrlEl = document.getElementById('timer-controls');
+  const setEl  = document.getElementById('timer-set-ui');
+  if (dispEl) dispEl.style.display = 'block';
+  if (ctrlEl) ctrlEl.style.display = 'flex';
+  if (setEl)  setEl.style.display  = 'none';
+
   updateTimerDisplay();
+
   if (running && !timerRunning) { timerRunning = true; startLocalTimer(); }
-  if (!running) { timerRunning = false; clearInterval(timerInterval); }
+  if (!running)                 { timerRunning = false; clearInterval(timerInterval); }
 }
 
 // ─── Helga Boost ───

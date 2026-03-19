@@ -212,18 +212,38 @@ function syncTimer(session) {
   const secs = session.timer_seconds || 0;
   const running = session.timer_running;
   const startedAt = session.timer_started_at;
-  const badge = document.getElementById('timer-badge');
-  if (secs === 0) { badge.style.display = 'none'; return; }
-  badge.style.display = 'block';
+
+  if (secs === 0 && !running) {
+    // Timer wurde resettet
+    document.getElementById('timer-display')?.style && (document.getElementById('timer-display').style.display = 'none');
+    document.getElementById('timer-controls')?.style && (document.getElementById('timer-controls').style.display = 'none');
+    document.getElementById('timer-set-ui')?.style && (document.getElementById('timer-set-ui').style.display = 'flex');
+    return;
+  }
+
   let remaining = secs;
   if (running && startedAt) {
     const elapsed = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
     remaining = Math.max(0, secs - elapsed);
   }
-  timerSecondsLeft = remaining;
-  updateTimerBadge();
-  if (running && !timerRunning) { timerRunning = true; startTimerLocal(); }
-  if (!running) { timerRunning = false; clearInterval(timerInterval); }
+
+  // Nur überschreiben wenn Differenz gross (verhindert Sprünge durch State-Updates)
+  if (Math.abs(remaining - timerSecondsLeft) > 3 || !timerRunning) {
+    timerSecondsLeft = remaining;
+  }
+
+  // UI einblenden
+  const dispEl = document.getElementById('timer-display');
+  const ctrlEl = document.getElementById('timer-controls');
+  const setEl  = document.getElementById('timer-set-ui');
+  if (dispEl) dispEl.style.display = 'block';
+  if (ctrlEl) ctrlEl.style.display = 'flex';
+  if (setEl)  setEl.style.display  = 'none';
+
+  updateTimerDisplay();
+
+  if (running && !timerRunning) { timerRunning = true; startLocalTimer(); }
+  if (!running)                 { timerRunning = false; clearInterval(timerInterval); }
 }
 
 function startTimerLocal() {
