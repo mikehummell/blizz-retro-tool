@@ -213,7 +213,7 @@ function connectWS() {
 // ─── Timer ───
 function timerSet() {
   const mins = parseInt(document.getElementById('timer-min').value) || 10;
-  timerSecondsLeft = mins * 60;
+  timerSecondsLeft = mins * 60;  // <- wichtig: VOR dem fetch setzen
   fetch(`/api/sessions/${sessionId}/timer`, {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({action:'set', seconds: timerSecondsLeft})
@@ -225,18 +225,26 @@ function timerSet() {
 }
 
 function timerAction(action) {
-  fetch(`/api/sessions/${sessionId}/timer`, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({action})
-  });
-  if (action === 'start') { timerRunning = true; startLocalTimer(); }
-  else if (action === 'pause') { timerRunning = false; clearInterval(timerInterval); }
-  else if (action === 'reset') {
-    timerRunning = false; clearInterval(timerInterval);
+  if (action === 'start') {
+    // Zuerst lokal starten, DANN Server informieren
+    timerRunning = true;
+    startLocalTimer();
+  } else if (action === 'pause') {
+    timerRunning = false;
+    clearInterval(timerInterval);
+  } else if (action === 'reset') {
+    timerRunning = false;
+    clearInterval(timerInterval);
+    timerSecondsLeft = 0;
     document.getElementById('timer-display').style.display = 'none';
     document.getElementById('timer-controls').style.display = 'none';
     document.getElementById('timer-set-ui').style.display = 'flex';
   }
+  // Server NACH lokalem Update informieren
+  fetch(`/api/sessions/${sessionId}/timer`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({action})
+  });
 }
 
 function startLocalTimer() {
