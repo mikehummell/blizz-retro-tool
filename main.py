@@ -251,7 +251,7 @@ async def set_timer(session_id: str, data: dict):
                      (int(data.get("seconds", 300)), session_id))
     elif action == "start":
         conn.execute("UPDATE sessions SET timer_running=1, timer_started_at=? WHERE id=?",
-                     (datetime.now().isoformat(), session_id))
+                    (datetime.utcnow().isoformat() + "Z", session_id))
     elif action == "pause":
         row = conn.execute("SELECT timer_seconds, timer_started_at FROM sessions WHERE id=?", (session_id,)).fetchone()
         if row and row["timer_started_at"]:

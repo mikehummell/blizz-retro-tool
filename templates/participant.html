@@ -200,10 +200,13 @@ function syncTimer(session) {
   // Nur sync wenn Timer nicht lokal läuft
   if (!timerRunning) {
     let remaining = secs;
-    if (running && startedAt) {
-      const elapsed = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
-      remaining = Math.max(0, secs - elapsed);
-    }
+  if (running && startedAt) {
+    // Explizit als UTC parsen (das Z am Ende stellt sicher dass es UTC ist)
+    const startTime = new Date(startedAt).getTime();
+    const nowTime = Date.now();
+    const elapsed = Math.floor((nowTime - startTime) / 1000);
+    remaining = Math.max(0, secs - elapsed);
+  }
     timerSecondsLeft = remaining;
     updateTimerBadge();
   }
