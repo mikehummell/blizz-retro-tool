@@ -244,19 +244,15 @@ async def set_phase(session_id: str, data: dict):
 
 @app.post("/api/sessions/{session_id}/timer")
 async def set_timer(session_id: str, data: dict):
-    action = data.get("action")  # set, start, pause, reset
+    action = data.get("action")
     conn = get_db()
     if action == "set":
         conn.execute("UPDATE sessions SET timer_seconds=?, timer_running=0, timer_started_at=NULL WHERE id=?",
                      (int(data.get("seconds", 300)), session_id))
-  
     elif action == "start":
-        # Aktuellen remaining-Wert aus pause berechnen falls nötig
-        row = conn.execute("SELECT timer_seconds, timer_started_at, timer_running FROM sessions WHERE id=?", (session_id,)).fetchone()
         conn.execute("UPDATE sessions SET timer_running=1, timer_started_at=? WHERE id=?",
-                 (datetime.now().isoformat(), session_id))
+                     (datetime.now().isoformat(), session_id))
     elif action == "pause":
-        # Subtract elapsed from timer_seconds
         row = conn.execute("SELECT timer_seconds, timer_started_at FROM sessions WHERE id=?", (session_id,)).fetchone()
         if row and row["timer_started_at"]:
             elapsed = (datetime.now() - datetime.fromisoformat(row["timer_started_at"])).seconds
@@ -267,8 +263,12 @@ async def set_timer(session_id: str, data: dict):
         conn.execute("UPDATE sessions SET timer_seconds=0, timer_running=0, timer_started_at=NULL WHERE id=?",
                      (session_id,))
     conn.commit(); conn.close()
-    state = get_session_state(session_id)
-    await manager.broadcast(session_id, {"type": "state_update", "data": state})
+    
+    # Nur bei set/pause/reset broadcasten, NICHT bei start
+    if action != "start":
+        state = get_session_state(session_id)
+        await manager.broadcast(session_id, {"type": "state_update", "data": state})
+    
     return {"ok": True}
 
 # ─── Participants ─────────────────────────────────────────────────────────────
