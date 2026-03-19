@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retro Admin</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@400;500;600;700&display=swap');
+:root {
+  --indigo:#8252fe; --indigo2:#4e3198; --indigo-light:#e6dcff;
+  --yellow:#def471; --yellow2:#ebf8aa; --black:#000; --white:#fff;
+  --red:#f84586; --surface:#1a1033; --surface2:#22193d; --border:#2e2050;
+  --text:#f0ecff; --muted:#8a7bb0; --keep:#43e97b; --stop:#f84586; --improve:#def471;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow',sans-serif;background:var(--black);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;top:-30%;left:-20%;width:70%;height:70%;background:radial-gradient(ellipse,rgba(130,82,254,.25) 0%,transparent 70%);pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;bottom:-20%;right:-10%;width:50%;height:60%;background:radial-gradient(ellipse,rgba(222,244,113,.1) 0%,transparent 70%);pointer-events:none;z-index:0}
+
+header{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:.9rem 2rem;background:rgba(0,0,0,.88);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);gap:1rem}
+.logo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.5rem;letter-spacing:-1px;color:var(--yellow);text-decoration:none}
+.logo span{color:var(--indigo)}
+.header-center{display:flex;align-items:center;gap:1rem;flex:1;justify-content:center}
+.phase-pill{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.78rem;letter-spacing:2px;text-transform:uppercase;padding:.3rem 1rem;border-radius:2rem;background:var(--surface2);border:1px solid var(--border);color:var(--muted)}
+.phase-pill.active{color:var(--yellow);border-color:var(--yellow);background:rgba(222,244,113,.1)}
+
+/* ─── Timer in header ─── */
+.timer-display{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;color:var(--white);letter-spacing:2px;min-width:5rem;text-align:center}
+.timer-display.warning{color:var(--yellow);animation:blink .8s infinite}
+.timer-display.danger{color:var(--red);animation:blink .4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.timer-controls{display:flex;gap:.3rem}
+.tbtn{padding:.3rem .6rem;border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:6px;cursor:pointer;font-size:.8rem;font-family:'Barlow',sans-serif;font-weight:600;transition:all .15s}
+.tbtn:hover{color:var(--text);border-color:var(--muted)}
+.tbtn.active{background:var(--indigo);color:#fff;border-color:var(--indigo)}
+.timer-set{display:flex;gap:.3rem;align-items:center}
+.timer-set input{width:60px;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.3rem .5rem;border-radius:6px;font-size:.85rem;text-align:center;outline:none}
+
+main{max-width:1200px;margin:0 auto;padding:1.5rem 2rem;position:relative;z-index:1}
+
+/* ─── Lobby ─── */
+.lobby-grid{display:grid;grid-template-columns:auto 1fr;gap:2rem;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2rem;margin-bottom:1.5rem}
+.qr-wrap{position:relative;display:inline-block}
+.qr-box{background:#fff;border-radius:12px;padding:1rem;display:flex;align-items:center;justify-content:center}
+.qr-box img{width:160px;height:160px;display:block}
+.qr-glow{position:absolute;inset:-15px;background:radial-gradient(ellipse,rgba(130,82,254,.4),transparent 65%);z-index:-1;border-radius:50%}
+.lobby-info{display:flex;flex-direction:column;gap:.8rem;justify-content:center}
+.session-name-lbl{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.8rem;color:var(--yellow)}
+.url-tag{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.5rem 1rem;font-family:'Barlow',monospace;font-size:.78rem;color:var(--muted);word-break:break-all}
+.counter-row{display:flex;align-items:center;gap:.8rem}
+.counter-big{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:3.5rem;color:var(--yellow);line-height:1;text-shadow:0 0 30px rgba(222,244,113,.5)}
+
+/* ─── Phase Nav ─── */
+.phase-nav{display:flex;gap:.4rem;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.5rem;margin-bottom:1.5rem}
+.phase-btn{padding:.45rem 1rem;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.82rem;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.5px}
+.phase-btn:hover{color:var(--text);background:var(--surface2)}
+.phase-btn.active{background:var(--indigo);color:#fff}
+
+/* ─── Cards ─── */
+.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-top:1.2rem}
+@media(max-width:900px){.cards-grid{grid-template-columns:1fr}}
+.col-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.82rem;letter-spacing:3px;text-transform:uppercase;padding-bottom:.6rem;border-bottom:3px solid;margin-bottom:.8rem;display:flex;justify-content:space-between;align-items:center}
+.col-keep .col-label{color:var(--keep);border-color:var(--keep)}
+.col-stop .col-label{color:var(--stop);border-color:var(--stop)}
+.col-improve .col-label{color:var(--improve);border-color:var(--improve)}
+.card-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.8rem 1rem;margin-bottom:.45rem;transition:border-color .15s,transform .15s}
+.card-item.draggable{cursor:grab}
+.card-item.drag-over{border-color:var(--yellow);background:rgba(222,244,113,.06);transform:scale(1.02)}
+.card-text{font-size:.88rem;line-height:1.5;margin-bottom:.4rem}
+.merged-list{margin:.3rem 0 .3rem}
+.merged-item{font-size:.75rem;color:var(--muted);padding:.15rem 0 .15rem .7rem;border-left:2px solid var(--border);margin-bottom:.15rem;font-style:italic}
+.card-actions{display:flex;gap:.3rem;align-items:center;flex-wrap:wrap}
+.drag-hint{font-size:.7rem;color:var(--muted)}
+.btn-danger{background:transparent;color:var(--red);border:1px solid var(--red);font-size:.75rem;padding:.25rem .6rem;border-radius:5px;cursor:pointer;font-family:'Barlow',sans-serif;font-weight:600}
+.btn-danger:hover{background:var(--red);color:#fff}
+
+/* ─── Vote bars ─── */
+.vote-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem;margin-bottom:.6rem;display:flex;align-items:center;gap:1rem}
+.vote-bar-bg{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.vote-bar{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--indigo),var(--yellow));transition:width .4s ease;min-width:4px}
+.vote-count{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.3rem;color:var(--yellow);min-width:2.5rem;text-align:right}
+
+/* ─── Results ─── */
+.stat-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem 1.2rem;text-align:center}
+.stat-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:2.2rem;color:var(--yellow)}
+.stat-lbl{font-size:.78rem;color:var(--muted);margin-top:.2rem}
+.result-row{display:flex;align-items:flex-start;gap:1rem;padding:.85rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:.45rem}
+.rank-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.2rem;color:var(--muted);min-width:2rem;padding-top:2px}
+.rank-num.gold{color:#ffd700}.rank-num.silver{color:#c0c0c0}.rank-num.bronze{color:#cd7f32}
+.result-text{flex:1;font-size:.88rem;line-height:1.4}
+.cat-badge{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.7rem;padding:.15rem .5rem;border-radius:4px;letter-spacing:1px;white-space:nowrap}
+.cat-stop{background:rgba(248,69,134,.15);color:var(--stop)}
+.cat-improve{background:rgba(222,244,113,.15);color:var(--improve)}
+.cat-keep{background:rgba(67,233,123,.15);color:var(--keep)}
+.result-votes{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.2rem;color:var(--yellow);min-width:3rem;text-align:right}
+.section-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.82rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);padding-bottom:.5rem;border-bottom:1px solid var(--border);margin:1.5rem 0 1rem}
+
+/* ─── Action Items ─── */
+.action-form{display:flex;gap:.5rem;margin-bottom:1rem}
+.action-input{flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.65rem 1rem;border-radius:8px;font-family:'Barlow',sans-serif;font-size:.9rem;outline:none}
+.action-input:focus{border-color:var(--indigo)}
+.action-input::placeholder{color:var(--muted)}
+.owner-input{width:130px}
+.btn-add{background:var(--indigo);color:#fff;border:none;border-radius:8px;padding:.65rem 1.1rem;font-family:'Barlow',sans-serif;font-weight:700;font-size:.88rem;cursor:pointer}
+.btn-add:hover{background:var(--indigo2)}
+.action-item{display:flex;align-items:flex-start;gap:.75rem;padding:.75rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:.4rem;transition:opacity .2s}
+.action-item.done-item{opacity:.55}
+.action-check{width:20px;height:20px;border-radius:4px;border:2px solid var(--border);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .15s}
+.action-check.checked{background:var(--keep);border-color:var(--keep)}
+.action-text{flex:1;font-size:.88rem;line-height:1.4}
+.action-text.done-text{text-decoration:line-through;color:var(--muted)}
+.action-owner{font-size:.75rem;color:var(--indigo);font-weight:600;margin-top:.2rem}
+.action-del{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:.1rem .3rem;border-radius:4px}
+.action-del:hover{color:var(--red)}
+
+/* ─── Buttons ─── */
+.btn{padding:.7rem 1.3rem;border:none;border-radius:8px;font-family:'Barlow',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:.4rem;text-decoration:none}
+.btn-indigo{background:var(--indigo);color:#fff}
+.btn-indigo:hover{background:var(--indigo2)}
+
+/* ─── Toast ─── */
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--surface);border:1px solid var(--indigo);color:var(--text);padding:.75rem 1.2rem;border-radius:10px;font-size:.88rem;z-index:200;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;box-shadow:0 0 20px rgba(130,82,254,.3)}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* ─── Helga Boost ─── */
+#helga{position:fixed;bottom:-220px;right:40px;font-size:5rem;z-index:9000;transition:bottom .5s cubic-bezier(.34,1.56,.64,1);pointer-events:none;filter:drop-shadow(0 0 20px rgba(222,244,113,.8))}
+#helga.show{bottom:20px}
+#helga-label{position:fixed;bottom:-80px;right:28px;background:var(--yellow);color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:.88rem;padding:.3rem .8rem;border-radius:2rem;z-index:9001;transition:bottom .5s cubic-bezier(.34,1.56,.64,1) .1s;pointer-events:none;letter-spacing:1px}
+#helga-label.show{bottom:116px}
+</style>
+</head>
+<body>
+<header>
+  <a href="/" class="logo">retro<span>.</span>blizz</a>
+  <div class="header-center">
+    <div class="phase-pill" id="phase-pill">—</div>
+    <!-- Timer -->
+    <div class="timer-set" id="timer-set-ui">
+      <input type="number" id="timer-min" value="10" min="1" max="99" title="Minuten" />
+      <span style="color:var(--muted);font-size:.8rem">min</span>
+      <button class="tbtn" onclick="timerSet()">Setzen</button>
+    </div>
+    <div class="timer-display" id="timer-display" style="display:none">00:00</div>
+    <div class="timer-controls" id="timer-controls" style="display:none">
+      <button class="tbtn" id="tbtn-play" onclick="timerAction('start')">▶</button>
+      <button class="tbtn" onclick="timerAction('pause')">⏸</button>
+      <button class="tbtn" onclick="timerAction('reset')">↺</button>
+    </div>
+  </div>
+  <button class="btn btn-indigo" onclick="exportPDF()" id="export-btn" style="display:none;font-size:.82rem;padding:.5rem 1rem">⬇ PDF</button>
+</header>
+
+<main>
+  <div class="lobby-grid">
+    <div class="qr-wrap">
+      <div class="qr-glow"></div>
+      <div class="qr-box"><img id="qr-img" src="" alt="QR" /></div>
+    </div>
+    <div class="lobby-info">
+      <div class="session-name-lbl" id="lobby-name">…</div>
+      <div class="url-tag" id="join-url">…</div>
+      <div class="counter-row">
+        <div class="counter-big" id="participant-count">0</div>
+        <div>
+          <div style="font-weight:700">Personen verbunden</div>
+          <div style="color:var(--muted);font-size:.82rem" id="budget-display"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase-nav">
+    <button class="phase-btn" onclick="setPhase('lobby')">① Lobby</button>
+    <button class="phase-btn" onclick="setPhase('input')">② Eingabe</button>
+    <button class="phase-btn" onclick="setPhase('voting')">③ Voting</button>
+    <button class="phase-btn" onclick="setPhase('results')">④ Auswertung</button>
+  </div>
+
+  <div id="admin-panel"></div>
+</main>
+
+<div id="helga">🦄</div>
+<div id="helga-label">Helga Boost!</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// Session ID from URL
+const sessionId = location.pathname.split('/').pop();
+let ws = null, state = null, lastPhase = null;
+let dragCardId = null;
+let timerInterval = null;
+let timerSecondsLeft = 0;
+let timerRunning = false;
+
+// ─── Init ───
+async function init() {
+  const base = window.location.origin;
+  const res = await fetch(`/api/sessions/${sessionId}/qr?base_url=${base}`);
+  const data = await res.json();
+  document.getElementById('qr-img').src = data.qr;
+  document.getElementById('join-url').textContent = data.url;
+  connectWS();
+}
+
+function connectWS() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${proto}://${location.host}/ws/${sessionId}`);
+  ws.onmessage = e => { const m = JSON.parse(e.data); if (m.type === 'state_update') { state = m.data; renderState(); } };
+  ws.onclose = () => setTimeout(connectWS, 2000);
+}
+
+// ─── Timer ───
+function timerSet() {
+  const mins = parseInt(document.getElementById('timer-min').value) || 10;
+  timerSecondsLeft = mins * 60;
+  fetch(`/api/sessions/${sessionId}/timer`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({action:'set', seconds: timerSecondsLeft})
+  });
+  document.getElementById('timer-set-ui').style.display = 'none';
+  document.getElementById('timer-display').style.display = 'block';
+  document.getElementById('timer-controls').style.display = 'flex';
+  updateTimerDisplay();
+}
+
+function timerAction(action) {
+  fetch(`/api/sessions/${sessionId}/timer`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({action})
+  });
+  if (action === 'start') { timerRunning = true; startLocalTimer(); }
+  else if (action === 'pause') { timerRunning = false; clearInterval(timerInterval); }
+  else if (action === 'reset') {
+    timerRunning = false; clearInterval(timerInterval);
+    document.getElementById('timer-display').style.display = 'none';
+    document.getElementById('timer-controls').style.display = 'none';
+    document.getElementById('timer-set-ui').style.display = 'flex';
+  }
+}
+
+function startLocalTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (timerSecondsLeft > 0) { timerSecondsLeft--; updateTimerDisplay(); }
+    else { clearInterval(timerInterval); }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timerSecondsLeft / 60).toString().padStart(2,'0');
+  const s = (timerSecondsLeft % 60).toString().padStart(2,'0');
+  const el = document.getElementById('timer-display');
+  el.textContent = `${m}:${s}`;
+  el.className = 'timer-display';
+  if (timerSecondsLeft <= 30) el.classList.add('danger');
+  else if (timerSecondsLeft <= 60) el.classList.add('warning');
+}
+
+function syncTimer(session) {
+  const secs = session.timer_seconds || 0;
+  const running = session.timer_running;
+  const startedAt = session.timer_started_at;
+
+  if (secs === 0) return;
+  let remaining = secs;
+  if (running && startedAt) {
+    const elapsed = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
+    remaining = Math.max(0, secs - elapsed);
+  }
+  timerSecondsLeft = remaining;
+  document.getElementById('timer-set-ui').style.display = 'none';
+  document.getElementById('timer-display').style.display = 'block';
+  document.getElementById('timer-controls').style.display = 'flex';
+  updateTimerDisplay();
+  if (running && !timerRunning) { timerRunning = true; startLocalTimer(); }
+  if (!running) { timerRunning = false; clearInterval(timerInterval); }
+}
+
+// ─── Helga Boost ───
+function showHelga() {
+  const h = document.getElementById('helga');
+  const l = document.getElementById('helga-label');
+  h.classList.add('show'); l.classList.add('show');
+  setTimeout(() => { h.classList.remove('show'); l.classList.remove('show'); }, 2800);
+}
+
+// ─── Render ───
+function renderState() {
+  if (!state) return;
+  const phase = state.session.phase;
+
+  if (lastPhase !== phase && phase !== 'lobby' && lastPhase !== null && Math.random() < 0.6) showHelga();
+  lastPhase = phase;
+
+  syncTimer(state.session);
+
+  const labels = {lobby:'Lobby', input:'Eingabe', voting:'Voting', results:'Auswertung'};
+  const pill = document.getElementById('phase-pill');
+  pill.textContent = labels[phase] || phase;
+  pill.className = 'phase-pill active';
+
+  document.getElementById('participant-count').textContent = state.participant_count;
+  document.getElementById('lobby-name').textContent = state.session.name;
+  document.getElementById('budget-display').textContent = `${state.session.dot_budget} Dots pro Person`;
+  document.getElementById('export-btn').style.display = phase === 'results' ? 'inline-flex' : 'none';
+
+  document.querySelectorAll('.phase-btn').forEach(b => b.classList.remove('active'));
+  const idx = {lobby:0, input:1, voting:2, results:3}[phase];
+  document.querySelectorAll('.phase-btn')[idx]?.classList.add('active');
+
+  const panel = document.getElementById('admin-panel');
+  if (phase === 'lobby') panel.innerHTML = '<p style="color:var(--muted);text-align:center;padding:2rem 0">Warte auf Teilnehmer → dann weiter zu <strong style="color:var(--text)">Eingabe</strong></p>';
+  else if (phase === 'input') renderInputView(panel);
+  else if (phase === 'voting') renderVotingView(panel);
+  else if (phase === 'results') renderResultsView(panel);
+}
+
+// ─── Input View (with live feed + merge) ───
+function renderInputView(panel) {
+  const cards = state.cards;
+  const byCat = cat => cards.filter(c => c.category === cat);
+
+  const renderCard = c => {
+    const mergedHtml = (c.merged && c.merged.length)
+      ? `<div class="merged-list">${c.merged.map(m=>`<div class="merged-item">↳ ${esc(m)}</div>`).join('')}</div>` : '';
+    return `
+      <div class="card-item draggable" id="card-${c.id}" draggable="true"
+           ondragstart="onDragStart(event,'${c.id}')"
+           ondragover="onDragOver(event,'${c.id}')"
+           ondragleave="onDragLeave(event,'${c.id}')"
+           ondrop="onDrop(event,'${c.id}')">
+        <div class="card-text">${esc(c.text)}</div>
+        ${mergedHtml}
+        <div class="card-actions">
+          <span class="drag-hint">⠿ Drag = zusammenführen</span>
+          <button class="btn-danger" onclick="delCard('${c.id}')">✕</button>
+        </div>
+      </div>`;
+  };
+
+  panel.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <span>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.8rem;color:var(--yellow)">${cards.length}</span>
+        <span style="color:var(--muted);margin-left:.5rem">Karten eingegangen</span>
+      </span>
+      <span style="font-size:.78rem;color:var(--muted)">Drag & Drop zum Zusammenführen</span>
+    </div>
+    <div class="cards-grid">
+      <div class="col-keep"><div class="col-label">✓ Keep <span>${byCat('keep').length}</span></div>${byCat('keep').map(renderCard).join('')}</div>
+      <div class="col-stop"><div class="col-label">✕ Stop <span>${byCat('stop').length}</span></div>${byCat('stop').map(renderCard).join('')}</div>
+      <div class="col-improve"><div class="col-label">↑ Improve <span>${byCat('improve').length}</span></div>${byCat('improve').map(renderCard).join('')}</div>
+    </div>`;
+}
+
+// ─── Drag & Drop ───
+function onDragStart(e,id){dragCardId=id;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',id)}
+function onDragOver(e,id){if(id===dragCardId)return;e.preventDefault();document.getElementById('card-'+id)?.classList.add('drag-over')}
+function onDragLeave(e,id){document.getElementById('card-'+id)?.classList.remove('drag-over')}
+async function onDrop(e,tid){
+  e.preventDefault();document.getElementById('card-'+tid)?.classList.remove('drag-over');
+  if(!dragCardId||dragCardId===tid)return;
+  await fetch(`/api/sessions/${sessionId}/cards/${dragCardId}/merge`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({target_id:tid})});
+  showToast('Karten zusammengeführt ✓');dragCardId=null;
+}
+
+// ─── Voting View ───
+function renderVotingView(panel) {
+  const votable = state.cards.filter(c=>c.category!=='keep');
+  const maxV = Math.max(...votable.map(c=>c.votes.total),1);
+  const rc = cards => cards.sort((a,b)=>b.votes.total-a.votes.total).map(c=>`
+    <div class="vote-card">
+      <div style="flex:1">
+        <div class="card-text">${esc(c.text)}</div>
+        ${c.merged&&c.merged.length?`<div style="font-size:.72rem;color:var(--muted)">+${c.merged.length} zusammengeführt</div>`:''}
+        <div class="vote-bar-bg" style="margin-top:.4rem"><div class="vote-bar" style="width:${c.votes.total/maxV*100}%"></div></div>
+      </div>
+      <div class="vote-count">${c.votes.total}</div>
+    </div>`).join('');
+  panel.innerHTML = `
+    <div class="cards-grid" style="grid-template-columns:1fr 1fr;max-width:800px">
+      <div class="col-stop"><div class="col-label">✕ Stop</div>${rc(state.cards.filter(c=>c.category==='stop'))}</div>
+      <div class="col-improve"><div class="col-label">↑ Improve</div>${rc(state.cards.filter(c=>c.category==='improve'))}</div>
+    </div>`;
+}
+
+// ─── Results View ───
+function renderResultsView(panel) {
+  const votable = state.cards.filter(c=>c.category!=='keep');
+  const sorted = [...votable].sort((a,b)=>b.votes.total-a.votes.total);
+  const total = votable.reduce((s,c)=>s+c.votes.total,0);
+  const keep = state.cards.filter(c=>c.category==='keep');
+  const ranks = ['gold','silver','bronze'];
+  const mergedHtml = c => (c.merged&&c.merged.length)?`<div class="merged-list">${c.merged.map(m=>`<div class="merged-item">↳ ${esc(m)}</div>`).join('')}</div>`:'';
+  const actions = state.action_items || [];
+
+  panel.innerHTML = `
+    <div class="stat-strip">
+      <div class="stat-card"><div class="stat-num">${state.participant_count}</div><div class="stat-lbl">Teilnehmende</div></div>
+      <div class="stat-card"><div class="stat-num">${state.cards.length}</div><div class="stat-lbl">Karten</div></div>
+      <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-lbl">Dots vergeben</div></div>
+      <div class="stat-card"><div class="stat-num">${actions.length}</div><div class="stat-lbl">Action Items</div></div>
+    </div>
+
+    <div class="section-label">🏆 Priorisierung</div>
+    ${sorted.map((c,i)=>`
+      <div class="result-row">
+        <div class="rank-num ${ranks[i]||''}">#${i+1}</div>
+        <div class="result-text">${esc(c.text)}${mergedHtml(c)}</div>
+        <span class="cat-badge cat-${c.category}">${c.category.toUpperCase()}</span>
+        <div class="result-votes">● ${c.votes.total}</div>
+      </div>`).join('')}
+
+    ${keep.length?`
+      <div class="section-label" style="margin-top:1.5rem">✅ Keep</div>
+      ${keep.map(c=>`<div class="result-row"><div class="result-text">${esc(c.text)}${mergedHtml(c)}</div><span class="cat-badge cat-keep">KEEP</span></div>`).join('')}`:''}
+
+    <div class="section-label" style="margin-top:1.5rem">⚡ Action Items</div>
+    <div class="action-form">
+      <input class="action-input" id="ai-text" placeholder="Massnahme beschreiben…" />
+      <input class="action-input owner-input" id="ai-owner" placeholder="Verantwortlich" />
+      <button class="btn-add" onclick="addAction()">+ Hinzufügen</button>
+    </div>
+    <div id="action-list">
+      ${actions.map(a=>`
+        <div class="action-item ${a.done?'done-item':''}" id="action-${a.id}">
+          <div class="action-check ${a.done?'checked':''}" onclick="toggleAction('${a.id}',${a.done?0:1})">
+            ${a.done?'✓':''}
+          </div>
+          <div style="flex:1">
+            <div class="action-text ${a.done?'done-text':''}">${esc(a.text)}</div>
+            ${a.owner?`<div class="action-owner">→ ${esc(a.owner)}</div>`:''}
+          </div>
+          <button class="action-del" onclick="delAction('${a.id}')">✕</button>
+        </div>`).join('')}
+    </div>`;
+}
+
+// ─── Actions CRUD ───
+async function addAction() {
+  const text = document.getElementById('ai-text').value.trim();
+  if (!text) return;
+  const owner = document.getElementById('ai-owner').value.trim();
+  await fetch(`/api/sessions/${sessionId}/actions`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({text, owner})
+  });
+  document.getElementById('ai-text').value = '';
+  document.getElementById('ai-owner').value = '';
+}
+
+async function toggleAction(id, done) {
+  await fetch(`/api/sessions/${sessionId}/actions/${id}`, {
+    method:'PATCH', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({done: !!done})
+  });
+}
+async function delAction(id) {
+  await fetch(`/api/sessions/${sessionId}/actions/${id}`, {method:'DELETE'});
+}
+
+// ─── Phase / Card Actions ───
+async function setPhase(phase) {
+  await fetch(`/api/sessions/${sessionId}/phase`, {
+    method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({phase})
+  });
+}
+async function delCard(id) {
+  await fetch(`/api/sessions/${sessionId}/cards/${id}`, {method:'DELETE'});
+  showToast('Karte gelöscht');
+}
+function exportPDF() {
+  window.open(`/api/sessions/${sessionId}/export/pdf`, '_blank');
+  showToast('PDF wird generiert…');
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+init();
+</script>
+</body>
+</html>

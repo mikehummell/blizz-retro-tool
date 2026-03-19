@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retro Tool</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@400;500;600;700&display=swap');
+:root {
+  --indigo:#8252fe; --yellow:#def471; --black:#000; --white:#fff;
+  --surface:#1a1033; --surface2:#22193d; --border:#2e2050;
+  --text:#f0ecff; --muted:#8a7bb0; --red:#f84586;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow',sans-serif;background:var(--black);color:var(--text);min-height:100vh}
+body::before{content:'';position:fixed;top:-30%;left:-20%;width:70%;height:70%;background:radial-gradient(ellipse,rgba(130,82,254,.25) 0%,transparent 70%);pointer-events:none;z-index:0}
+header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:rgba(0,0,0,.85);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);position:sticky;top:0;z-index:50}
+.logo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;letter-spacing:-1px;color:var(--yellow)}
+.logo span{color:var(--indigo)}
+main{max-width:900px;margin:0 auto;padding:2rem;position:relative;z-index:1}
+.hero{text-align:center;padding:3rem 0 2rem}
+.hero-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:3.5rem;line-height:.95;color:var(--white);margin-bottom:1rem}
+.hero-title em{color:var(--yellow);font-style:normal;display:block}
+.hero-sub{color:var(--muted);font-size:0.95rem}
+.create-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem;margin-bottom:2rem}
+.create-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+.form-row{display:flex;gap:0.75rem}
+.form-col{display:flex;flex-direction:column;gap:0.4rem;flex:1}
+label{font-size:0.75rem;font-weight:700;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
+input[type=text],input[type=number]{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;border-radius:8px;font-family:'Barlow',sans-serif;font-size:1rem;outline:none;transition:border-color .2s;width:100%}
+input:focus{border-color:var(--indigo)}
+input::placeholder{color:var(--muted)}
+.btn{padding:.75rem 1.5rem;border:none;border-radius:8px;font-family:'Barlow',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:.4rem;text-decoration:none}
+.btn-primary{background:var(--yellow);color:var(--black)}
+.btn-primary:hover{background:#ebf8aa;transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--text);border-color:var(--muted)}
+.btn-danger-sm{background:transparent;color:var(--red);border:1px solid transparent;font-size:.78rem;padding:.25rem .5rem;border-radius:5px;cursor:pointer;font-family:'Barlow',sans-serif;font-weight:600}
+.btn-danger-sm:hover{border-color:var(--red)}
+.sessions-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.85rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+.session-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.2rem 1.4rem;margin-bottom:.75rem;display:flex;align-items:center;gap:1rem;transition:border-color .15s}
+.session-card:hover{border-color:var(--indigo)}
+.session-info{flex:1}
+.session-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.2rem;color:var(--yellow);margin-bottom:.2rem}
+.session-meta{font-size:.78rem;color:var(--muted);display:flex;gap:1rem}
+.phase-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--muted);margin-right:.3rem}
+.phase-dot.lobby{background:#8a7bb0}.phase-dot.input{background:var(--yellow)}.phase-dot.voting{background:var(--indigo)}.phase-dot.results{background:var(--keep,#43e97b)}
+.session-actions{display:flex;gap:.5rem;align-items:center}
+.empty{text-align:center;padding:3rem;color:var(--muted);font-size:.9rem}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">retro<span>.</span>blizz</div>
+  <span style="font-size:.8rem;color:var(--muted)">Session-Verwaltung</span>
+</header>
+<main>
+  <div class="hero">
+    <div class="hero-title">Retro<em>Blizz</em></div>
+    <div class="hero-sub">Erstelle eine neue Session oder öffne eine bestehende.</div>
+  </div>
+
+  <div class="create-card">
+    <div class="create-title">Neue Session</div>
+    <div class="form-row">
+      <div class="form-col">
+        <label>Name</label>
+        <input type="text" id="sname" placeholder="z.B. Sprint 42 Retro" />
+      </div>
+      <div class="form-col" style="max-width:130px">
+        <label>Dots / Person</label>
+        <input type="number" id="sdots" value="5" min="1" max="20" />
+      </div>
+      <div class="form-col" style="justify-content:flex-end;max-width:160px">
+        <button class="btn btn-primary" onclick="createSession()">Erstellen →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sessions-title">Bestehende Sessions</div>
+  <div id="sessions-list"><div class="empty">Lade…</div></div>
+</main>
+
+<script>
+const phases = {lobby:'Lobby',input:'Eingabe',voting:'Voting',results:'Auswertung'};
+
+async function load() {
+  const res = await fetch('/api/sessions');
+  const sessions = await res.json();
+  const el = document.getElementById('sessions-list');
+  if (!sessions.length) { el.innerHTML = '<div class="empty">Noch keine Sessions erstellt.</div>'; return; }
+  el.innerHTML = sessions.map(s => `
+    <div class="session-card">
+      <div class="session-info">
+        <div class="session-name">${esc(s.name)}</div>
+        <div class="session-meta">
+          <span><span class="phase-dot ${s.phase}"></span>${phases[s.phase]||s.phase}</span>
+          <span>👥 ${s.participant_count}</span>
+          <span>🃏 ${s.card_count} Karten</span>
+          <span>${new Date(s.created_at).toLocaleDateString('de-CH')}</span>
+        </div>
+      </div>
+      <div class="session-actions">
+        <a href="/admin/${s.id}" class="btn btn-ghost" style="font-size:.85rem;padding:.5rem 1rem">Admin öffnen</a>
+        <button class="btn-danger-sm" onclick="deleteSession('${s.id}','${esc(s.name)}')">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+async function createSession() {
+  const name = document.getElementById('sname').value.trim() || 'Retrospektive';
+  const budget = parseInt(document.getElementById('sdots').value) || 5;
+  const res = await fetch('/api/sessions', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({name, dot_budget: budget})
+  });
+  const data = await res.json();
+  window.location.href = '/admin/' + data.id;
+}
+
+async function deleteSession(id, name) {
+  if (!confirm(`Session "${name}" wirklich löschen?`)) return;
+  await fetch('/api/sessions/' + id, {method:'DELETE'});
+  load();
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+load();
+</script>
+</body>
+</html>

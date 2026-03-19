@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Retro – Teilnahme</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@400;500;600;700&display=swap');
+:root {
+  --indigo:#8252fe; --yellow:#def471; --black:#000; --white:#fff;
+  --red:#f84586; --surface:#1a1033; --surface2:#22193d; --border:#2e2050;
+  --text:#f0ecff; --muted:#8a7bb0; --keep:#43e97b; --stop:#f84586; --improve:#def471;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Barlow',sans-serif;background:var(--black);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto}
+body::before{content:'';position:fixed;top:-20%;left:-30%;width:80%;height:60%;background:radial-gradient(ellipse,rgba(130,82,254,.2) 0%,transparent 70%);pointer-events:none;z-index:0}
+
+header{padding:.85rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(0,0,0,.92);backdrop-filter:blur(12px);z-index:10}
+.logo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;letter-spacing:-.5px;color:var(--yellow)}
+.logo span{color:var(--indigo)}
+.header-right{display:flex;align-items:center;gap:.75rem}
+.session-tag{font-size:.75rem;color:var(--muted)}
+.timer-badge{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;color:var(--white);letter-spacing:1px;display:none}
+.timer-badge.warning{color:var(--yellow)}
+.timer-badge.danger{color:var(--red);animation:blink .4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+main{padding:1.2rem;position:relative;z-index:1}
+.screen{display:none}
+.screen.active{display:block}
+
+/* ─── Waiting ─── */
+#screen-waiting{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;text-align:center;gap:1.5rem}
+.pulse-ring{width:64px;height:64px;border-radius:50%;background:var(--indigo);box-shadow:0 0 0 0 rgba(130,82,254,.4);animation:pulse 1.8s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(130,82,254,.5)}70%{box-shadow:0 0 0 24px rgba(130,82,254,0)}100%{box-shadow:0 0 0 0 rgba(130,82,254,0)}}
+.waiting-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.5rem}
+.waiting-sub{color:var(--muted);font-size:.88rem}
+
+/* ─── Tabs ─── */
+.cat-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:1.2rem}
+.cat-tab{padding:.7rem .4rem;border-radius:10px;border:2px solid var(--border);background:var(--surface);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.8rem;letter-spacing:1px;text-align:center;cursor:pointer;transition:all .15s;text-transform:uppercase}
+.cat-tab.sel-keep{border-color:var(--keep);color:var(--keep);background:rgba(67,233,123,.08)}
+.cat-tab.sel-stop{border-color:var(--stop);color:var(--stop);background:rgba(248,69,134,.08)}
+.cat-tab.sel-improve{border-color:var(--improve);color:var(--improve);background:rgba(222,244,113,.08)}
+
+/* ─── Input ─── */
+.input-card{background:var(--surface);border:2px solid var(--border);border-radius:14px;padding:1rem;margin-bottom:1rem;transition:border-color .2s}
+.input-card.bc-keep{border-color:var(--keep)}.input-card.bc-stop{border-color:var(--stop)}.input-card.bc-improve{border-color:var(--improve)}
+textarea{width:100%;background:transparent;border:none;color:var(--text);font-family:'Barlow',sans-serif;font-size:1rem;resize:none;outline:none;min-height:90px;line-height:1.5}
+textarea::placeholder{color:var(--muted)}
+.submit-btn{display:block;width:100%;padding:.9rem;border:none;border-radius:12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .15s;text-align:center}
+.submit-btn:active{transform:scale(.97)}.submit-btn:disabled{opacity:.4}
+.sb-keep{background:var(--keep);color:var(--black)}.sb-stop{background:var(--stop);color:var(--white)}.sb-improve{background:var(--improve);color:var(--black)}
+
+/* ─── Live Feed ─── */
+.live-feed{margin-top:1.5rem}
+.live-feed-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.75rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--red);animation:livepulse 1.2s infinite}
+@keyframes livepulse{0%,100%{opacity:1}50%{opacity:.3}}
+.feed-card{background:var(--surface2);border-radius:8px;padding:.6rem .9rem;margin-bottom:.4rem;display:flex;align-items:flex-start;gap:.5rem;font-size:.83rem;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.feed-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.dot-keep{background:var(--keep)}.dot-stop{background:var(--stop)}.dot-improve{background:var(--improve)}
+
+/* ─── My Cards ─── */
+.my-cards{margin-top:1.2rem}
+.my-cards-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.75rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:.6rem}
+.my-card{background:var(--surface2);border-radius:8px;padding:.6rem .9rem;margin-bottom:.35rem;display:flex;align-items:flex-start;gap:.5rem;font-size:.83rem}
+.dot-my{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+
+/* ─── Voting ─── */
+.dots-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1rem 1.2rem;margin-bottom:1.2rem;display:flex;justify-content:space-between;align-items:center}
+.dots-left-label{color:var(--muted);font-size:.8rem;margin-bottom:.3rem}
+.dots-pips{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.3rem}
+.pip{width:12px;height:12px;border-radius:50%;background:var(--indigo);transition:background .2s}
+.pip.used{background:var(--border)}
+.dots-big{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:2.5rem;color:var(--yellow);line-height:1}
+
+.vote-section-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.75rem;letter-spacing:2.5px;text-transform:uppercase;padding-bottom:.4rem;border-bottom:2px solid;margin:1.2rem 0 .7rem}
+.vst-stop{color:var(--stop);border-color:var(--stop)}.vst-improve{color:var(--improve);border-color:var(--improve)}
+.vote-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.85rem 1rem;margin-bottom:.55rem}
+.vote-item-text{font-size:.88rem;line-height:1.4;margin-bottom:.65rem}
+.vote-controls{display:flex;align-items:center;gap:.65rem}
+.vbtn{width:38px;height:38px;border-radius:50%;border:2px solid var(--border);background:transparent;color:var(--text);font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;flex-shrink:0}
+.vbtn:active{transform:scale(.88)}
+.vbtn.plus{border-color:var(--indigo);color:var(--indigo)}.vbtn.plus:hover{background:var(--indigo);color:#fff}
+.vbtn.minus{border-color:var(--border);color:var(--muted)}.vbtn.minus:hover{border-color:var(--red);color:var(--red)}
+.my-dot-count{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;min-width:1.5rem;text-align:center}
+.total-count{margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-size:.8rem;color:var(--muted)}
+
+/* ─── Results ─── */
+.result-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;margin-bottom:.45rem;display:flex;align-items:flex-start;gap:.65rem}
+.rank{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:.9rem;color:var(--muted);min-width:2rem;padding-top:2px}
+.rank.gold{color:#ffd700}.rank.silver{color:#c0c0c0}.rank.bronze{color:#cd7f32}
+.res-text{flex:1;font-size:.85rem;line-height:1.4}
+.res-votes{font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--yellow)}
+
+/* ─── Action Items participant view ─── */
+.action-item-view{background:var(--surface2);border-radius:10px;padding:.75rem 1rem;margin-bottom:.4rem;display:flex;align-items:flex-start;gap:.6rem}
+.ai-check{width:16px;height:16px;border-radius:3px;border:2px solid var(--border);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:.7rem}
+.ai-check.done{background:var(--keep);border-color:var(--keep)}
+.ai-text-p{font-size:.85rem;flex:1}
+.ai-owner-p{font-size:.72rem;color:var(--indigo);font-weight:600;margin-top:.15rem}
+
+.done-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;gap:1rem}
+.done-icon{font-size:4rem}
+.done-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.8rem;color:var(--yellow)}
+.done-sub{color:var(--muted);font-size:.88rem}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">retro<span>.</span>blizz</div>
+  <div class="header-right">
+    <div class="timer-badge" id="timer-badge">--:--</div>
+    <div class="session-tag" id="session-tag">verbinde…</div>
+  </div>
+</header>
+
+<main>
+  <div id="screen-waiting" class="screen active">
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;gap:1.5rem;text-align:center">
+      <div class="pulse-ring"></div>
+      <div class="waiting-title" id="waiting-title">Warte auf Admin…</div>
+      <div class="waiting-sub">Die Session startet bald.</div>
+    </div>
+  </div>
+
+  <div id="screen-input" class="screen">
+    <div class="cat-tabs">
+      <div class="cat-tab" id="tab-keep" onclick="selectCat('keep')">✓ Keep</div>
+      <div class="cat-tab" id="tab-stop" onclick="selectCat('stop')">✕ Stop</div>
+      <div class="cat-tab" id="tab-improve" onclick="selectCat('improve')">↑ Improve</div>
+    </div>
+    <div class="input-card" id="input-card">
+      <textarea id="card-text" rows="4" placeholder="Dein Gedanke…"></textarea>
+    </div>
+    <button class="submit-btn" id="submit-btn" onclick="submitCard()">Hinzufügen</button>
+
+    <!-- Live Feed -->
+    <div class="live-feed">
+      <div class="live-feed-title"><span class="live-dot"></span> Live</div>
+      <div id="live-feed-list"></div>
+    </div>
+
+    <div class="my-cards">
+      <div class="my-cards-label">Meine Karten</div>
+      <div id="my-cards-list"></div>
+    </div>
+  </div>
+
+  <div id="screen-voting" class="screen">
+    <div class="dots-card">
+      <div>
+        <div class="dots-left-label">Verbleibende Dots</div>
+        <div class="dots-pips" id="dots-pips"></div>
+      </div>
+      <div class="dots-big" id="dots-big">5</div>
+    </div>
+    <div id="voting-list"></div>
+  </div>
+
+  <div id="screen-results" class="screen">
+    <div class="vote-section-title vst-stop" style="margin-top:0;border-color:var(--indigo);color:var(--indigo)">🏆 Ergebnisse</div>
+    <div id="results-list"></div>
+    <div id="actions-view"></div>
+  </div>
+
+  <div id="screen-done" class="screen">
+    <div class="done-screen">
+      <div class="done-icon">🎉</div>
+      <div class="done-title">Abgeschlossen!</div>
+      <div class="done-sub">Danke für deine Teilnahme.</div>
+    </div>
+  </div>
+</main>
+
+<script>
+const pathParts = location.pathname.split('/');
+const sessionId = pathParts[pathParts.length - 1];
+let participantId = localStorage.getItem('pid_' + sessionId);
+let ws = null, state = null;
+let myVotes = {}, dotsRemaining = 5;
+let selectedCat = 'keep';
+let myCards = JSON.parse(localStorage.getItem('cards_' + sessionId) || '[]');
+let timerInterval = null, timerSecondsLeft = 0, timerRunning = false;
+
+async function init() {
+  if (!participantId) {
+    const res = await fetch(`/api/sessions/${sessionId}/join`, {method:'POST'});
+    const data = await res.json();
+    participantId = data.participant_id;
+    localStorage.setItem('pid_' + sessionId, participantId);
+  }
+  connectWS();
+}
+
+function connectWS() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${proto}://${location.host}/ws/${sessionId}`);
+  ws.onmessage = e => { const m = JSON.parse(e.data); if (m.type === 'state_update') { state = m.data; render(); } };
+  ws.onclose = () => setTimeout(connectWS, 2000);
+}
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+// ─── Timer ───
+function syncTimer(session) {
+  const secs = session.timer_seconds || 0;
+  const running = session.timer_running;
+  const startedAt = session.timer_started_at;
+  const badge = document.getElementById('timer-badge');
+  if (secs === 0) { badge.style.display = 'none'; return; }
+  badge.style.display = 'block';
+  let remaining = secs;
+  if (running && startedAt) {
+    const elapsed = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
+    remaining = Math.max(0, secs - elapsed);
+  }
+  timerSecondsLeft = remaining;
+  updateTimerBadge();
+  if (running && !timerRunning) { timerRunning = true; startTimerLocal(); }
+  if (!running) { timerRunning = false; clearInterval(timerInterval); }
+}
+
+function startTimerLocal() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (timerSecondsLeft > 0) { timerSecondsLeft--; updateTimerBadge(); }
+    else clearInterval(timerInterval);
+  }, 1000);
+}
+
+function updateTimerBadge() {
+  const m = Math.floor(timerSecondsLeft / 60).toString().padStart(2,'0');
+  const s = (timerSecondsLeft % 60).toString().padStart(2,'0');
+  const el = document.getElementById('timer-badge');
+  el.textContent = `${m}:${s}`;
+  el.className = 'timer-badge';
+  if (timerSecondsLeft <= 30) el.classList.add('danger');
+  else if (timerSecondsLeft <= 60) el.classList.add('warning');
+}
+
+// ─── Render ───
+async function render() {
+  if (!state) return;
+  const phase = state.session.phase;
+  document.getElementById('session-tag').textContent = state.session.name;
+  syncTimer(state.session);
+
+  if (phase === 'lobby') { show('waiting'); document.getElementById('waiting-title').textContent = 'Warte auf Admin…'; }
+  else if (phase === 'input') { show('input'); selectCat(selectedCat); renderLiveFeed(); renderMyCards(); }
+  else if (phase === 'voting') { show('voting'); await loadMyVotes(); renderVoting(); }
+  else if (phase === 'results') { show('results'); renderResults(); }
+}
+
+// ─── Input ───
+function selectCat(cat) {
+  selectedCat = cat;
+  const ph = {keep:'Was läuft gut?', stop:'Was sollen wir aufhören?', improve:'Was können wir verbessern?'};
+  document.getElementById('card-text').placeholder = ph[cat];
+  ['keep','stop','improve'].forEach(c => {
+    document.getElementById('tab-'+c).className = 'cat-tab' + (c===cat?' sel-'+c:'');
+  });
+  document.getElementById('input-card').className = 'input-card bc-' + cat;
+  const btn = document.getElementById('submit-btn');
+  btn.className = 'submit-btn sb-' + cat;
+  btn.textContent = {keep:'✓ Keep hinzufügen', stop:'✕ Stop hinzufügen', improve:'↑ Improve hinzufügen'}[cat];
+}
+
+async function submitCard() {
+  const text = document.getElementById('card-text').value.trim();
+  if (!text) return;
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  await fetch(`/api/sessions/${sessionId}/cards`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({participant_id: participantId, category: selectedCat, text})
+  });
+  myCards.push({category: selectedCat, text});
+  localStorage.setItem('cards_' + sessionId, JSON.stringify(myCards));
+  document.getElementById('card-text').value = '';
+  renderMyCards();
+  btn.disabled = false;
+}
+
+function renderMyCards() {
+  const list = document.getElementById('my-cards-list');
+  if (!myCards.length) { list.innerHTML = '<div style="color:var(--muted);font-size:.83rem">Noch keine Karten.</div>'; return; }
+  list.innerHTML = [...myCards].reverse().map(c => `
+    <div class="my-card">
+      <div class="dot-my dot-${c.category}"></div>
+      <div>${esc(c.text)}</div>
+    </div>`).join('');
+}
+
+// ─── Live Feed ───
+function renderLiveFeed() {
+  if (!state) return;
+  const list = document.getElementById('live-feed-list');
+  const cards = [...state.cards].reverse().slice(0, 8);
+  if (!cards.length) { list.innerHTML = '<div style="color:var(--muted);font-size:.8rem">Noch keine Karten eingegangen.</div>'; return; }
+  list.innerHTML = cards.map(c => `
+    <div class="feed-card">
+      <div class="feed-dot dot-${c.category}"></div>
+      <div style="color:var(--muted);font-size:.8rem">${esc(c.text)}</div>
+    </div>`).join('');
+}
+
+// ─── Voting ───
+async function loadMyVotes() {
+  const res = await fetch(`/api/sessions/${sessionId}/my_votes/${participantId}`);
+  const data = await res.json();
+  dotsRemaining = data.remaining;
+  myVotes = data.votes;
+}
+
+function renderVoting() {
+  document.getElementById('dots-big').textContent = dotsRemaining;
+  const budget = state.session.dot_budget;
+  const used = budget - dotsRemaining;
+  let pips = '';
+  for (let i = 0; i < budget; i++) pips += `<div class="pip${i<used?' used':''}"></div>`;
+  document.getElementById('dots-pips').innerHTML = pips;
+  const stops = state.cards.filter(c=>c.category==='stop');
+  const improves = state.cards.filter(c=>c.category==='improve');
+  const rc = cards => cards.map(c => {
+    const mine = myVotes[c.id] || 0;
+    return `
+      <div class="vote-item">
+        <div class="vote-item-text">${esc(c.text)}</div>
+        <div class="vote-controls">
+          <button class="vbtn minus" onclick="castVote('${c.id}','remove')">−</button>
+          <div class="my-dot-count" style="color:${mine>0?'var(--yellow)':'var(--muted)'}">${mine}</div>
+          <button class="vbtn plus" onclick="castVote('${c.id}','add')">+</button>
+          <div class="total-count">∑ ${c.votes.total}</div>
+        </div>
+      </div>`;
+  }).join('');
+  document.getElementById('voting-list').innerHTML = `
+    ${stops.length?`<div class="vote-section-title vst-stop">✕ Stop</div>${rc(stops)}`:''}
+    ${improves.length?`<div class="vote-section-title vst-improve">↑ Improve</div>${rc(improves)}`:''}`;
+}
+
+async function castVote(cardId, action) {
+  const res = await fetch(`/api/sessions/${sessionId}/vote`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({participant_id: participantId, card_id: cardId, action})
+  });
+  const data = await res.json();
+  if (!data.ok) return;
+  dotsRemaining = data.remaining;
+  if (action==='add') myVotes[cardId] = (myVotes[cardId]||0)+1;
+  else myVotes[cardId] = Math.max(0,(myVotes[cardId]||0)-1);
+  renderVoting();
+}
+
+// ─── Results ───
+function renderResults() {
+  const votable = state.cards.filter(c=>c.category!=='keep');
+  const sorted = [...votable].sort((a,b)=>b.votes.total-a.votes.total);
+  const ranks = ['gold','silver','bronze'];
+  document.getElementById('results-list').innerHTML = sorted.map((c,i)=>`
+    <div class="result-item">
+      <div class="rank ${ranks[i]||''}">#${i+1}</div>
+      <div class="res-text">${esc(c.text)}</div>
+      <div class="res-votes">● ${c.votes.total}</div>
+    </div>`).join('');
+
+  const actions = state.action_items || [];
+  const av = document.getElementById('actions-view');
+  if (!actions.length) { av.innerHTML = ''; return; }
+  av.innerHTML = `
+    <div class="vote-section-title vst-stop" style="border-color:var(--indigo);color:var(--indigo);margin-top:1.5rem">⚡ Action Items</div>
+    ${actions.map(a=>`
+      <div class="action-item-view">
+        <div class="ai-check ${a.done?'done':''}">${a.done?'✓':''}</div>
+        <div style="flex:1">
+          <div class="ai-text-p" style="${a.done?'text-decoration:line-through;color:var(--muted)':''}">${esc(a.text)}</div>
+          ${a.owner?`<div class="ai-owner-p">→ ${esc(a.owner)}</div>`:''}
+        </div>
+      </div>`).join('')}`;
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+init();
+</script>
+</body>
+</html>
