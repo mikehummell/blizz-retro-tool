@@ -186,20 +186,34 @@ let myCards = JSON.parse(localStorage.getItem('cards_' + sessionId) || '[]');
 let timerInterval = null, timerSecondsLeft = 0, timerRunning = false;
 
 async function init() {
-  if (!participantId) {
-    const res = await fetch(`/api/sessions/${sessionId}/join`, {method:'POST'});
-    const data = await res.json();
-    participantId = data.participant_id;
-    localStorage.setItem('pid_' + sessionId, participantId);
-  }
+  const res = await fetch(`/api/sessions/${sessionId}/join`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({participant_id: participantId || null})
+  });
+  const data = await res.json();
+  participantId = data.participant_id;
+  localStorage.setItem('pid_' + sessionId, participantId);
+  
+  // Sofort aktuellen State laden, nicht auf WS warten
+  const stateRes = await fetch(`/api/sessions/${sessionId}`);
+  state = await stateRes.json();
+  render();
+  
   connectWS();
 }
 
 function connectWS() {
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
   ws = new WebSocket(`${proto}://${location.host}/ws/${sessionId}`);
-  ws.onmessage = e => { const m = JSON.parse(e.data); if (m.type === 'state_update') { state = m.data; render(); } };
-  ws.onclose = () => setTimeout(connectWS, 2000);
+  ws.onmessage = e => { 
+    const m = JSON.parse(e.data); 
+    if (m.type === 'state_update') { state = m.data; render(); } 
+  };
+  ws.onclose = () => {
+    // Beim Reconnect NICHT nochmals joinen
+    setTimeout(connectWS, 2000);
+  };
 }
 
 function show(id) {
