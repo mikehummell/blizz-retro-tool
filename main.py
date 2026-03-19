@@ -278,7 +278,7 @@ async def join_session(session_id: str):
     get_session(session_id)
     pid = new_id()
     conn = get_db()
-    conn.execute("INSERT INTO participants (id, session_id, joined_at) VALUES (?,?,?)",
+    conn.execute("INSERT OR IGNORE INTO participants (id, session_id, joined_at) VALUES (?,?,?)",
                  (pid, session_id, datetime.now().isoformat()))
     conn.commit(); conn.close()
     state = get_session_state(session_id)
