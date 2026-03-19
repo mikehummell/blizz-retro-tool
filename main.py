@@ -321,9 +321,17 @@ async def delete_card(session_id: str, card_id: str):
 
 @app.post("/api/sessions/{session_id}/cards/{card_id}/merge")
 async def merge_card(session_id: str, card_id: str, data: dict):
+    target_id = data["target_id"]
     conn = get_db()
+    
+    # Karte selbst auf Ziel setzen
     conn.execute("UPDATE cards SET merged_into=? WHERE id=? AND session_id=?",
-                 (data["target_id"], card_id, session_id))
+                 (target_id, card_id, session_id))
+    
+    # Alle Karten die bereits auf card_id zeigen ebenfalls auf target_id umhängen
+    conn.execute("UPDATE cards SET merged_into=? WHERE merged_into=? AND session_id=?",
+                 (target_id, card_id, session_id))
+    
     conn.commit(); conn.close()
     state = get_session_state(session_id)
     await manager.broadcast(session_id, {"type": "state_update", "data": state})
